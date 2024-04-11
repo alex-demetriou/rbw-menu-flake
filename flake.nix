@@ -74,8 +74,8 @@
           program = "${rbw-menu}/bin/rbw-menu";
         };
         nixosModules = rec {
-          inherit module;
-          default = module;
+		  rbw-menu = module;
+          default = rbw-menu;
         };
       }
     );
