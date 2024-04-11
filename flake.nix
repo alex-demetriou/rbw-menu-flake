@@ -12,10 +12,13 @@
 
   outputs =
     inputs@{ ... }:
-    inputs.flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = import inputs.nixpkgs { inherit system; };
+    let
+      pkgs = import inputs.nixpkgs { inherit system; };
+      system = "x86_64-linux";
+    in
+    {
+      formatter.${system} = pkgs.nixfmt-rfc-style;
+      packages.${system} = rec {
         rbw-menu = pkgs.writeShellApplication {
           name = "rbw-menu";
           text = inputs.rbw-menu.outPath + "/bin/rbw-menu";
@@ -26,7 +29,10 @@
           ];
         };
 
-        module =
+        default = rbw-menu;
+      };
+      nixosModules.${system} = rec {
+        rbw-menu =
           {
             config,
             lib,
@@ -34,10 +40,6 @@
             ...
           }:
           with lib;
-
-          let
-            cfg = config.programs.rbw-menu;
-          in
           {
             options.programs.rbw-menu = {
               enable = mkEnableOption "rbw-menu";
@@ -58,25 +60,12 @@
             config = mkIf cfg.enable {
               environment.systemPackages = [ rbw-menu ];
               environment.variables.RBW_MENU_COMMAND = mkForce (
-                "${cfg.package}/bin/${pkgs.getName cfg.package} ${cfg.args}"
+                "${self.packages.${system}.rbw-menu}/bin/${pkgs.getName self.options.gui.package} ${self.options.gui.args}"
               );
             };
           };
-      in
-      {
-        formatter = pkgs.nixfmt-rfc-style;
-        packages = rec {
-          inherit rbw-menu;
-          default = rbw-menu;
-        };
-        apps.rbw-menu = {
-          type = "app";
-          program = "${rbw-menu}/bin/rbw-menu";
-        };
-        nixosModules = rec {
-		  rbw-menu = module;
-          default = rbw-menu;
-        };
-      }
-    );
+
+        default = rbw-menu;
+      };
+    };
 }
