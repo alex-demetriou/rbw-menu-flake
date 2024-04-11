@@ -33,31 +33,32 @@
             pkgs,
             ...
           }:
+          with lib;
+
+          let
+            cfg = config.programs.rbw-menu;
+          in
           {
             options.programs.rbw-menu = {
-              enable = lib.mkEnableOption "rbw-menu";
+              enable = mkEnableOption "rbw-menu";
               gui = {
-                package = lib.mkOption {
-                  type = lib.types.package;
+                package = mkOption {
+                  type = types.package;
                   default = pkgs.wofi;
                   description = "GUI package for rbw-menu.";
                 };
-                args = lib.mkOption {
-                  type = lib.types.str;
+                args = mkOption {
+                  type = types.str;
                   default = "--prompt 'name'";
                   description = "Command line arguments for the GUI.";
                 };
               };
             };
 
-            config = lib.mkIf config.programs.rbw-menu.enable {
+            config = mkIf cfg.enable {
               environment.systemPackages = [ rbw-menu ];
-              environment.variables.RBW_MENU_COMMAND = lib.mkForce (
-                let
-                  gui = config.programs.rbw-menu.gui.package;
-                  args = config.programs.rbw-menu.gui.args;
-                in
-                "${gui}/bin/${rbw-menu.getName gui} ${args}"
+              environment.variables.RBW_MENU_COMMAND = mkForce (
+                "${cfg.package}/bin/${pkgs.getName cfg.package} ${cfg.args}"
               );
             };
           };
