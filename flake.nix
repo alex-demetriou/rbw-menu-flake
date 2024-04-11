@@ -2,18 +2,17 @@
   description = "rbw-menu flake";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+	nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    rbw-menu = {
+    rbw-menu-flake = {
       url = "github:rbuchberger/rbw-menu";
       flake = false;
     };
   };
 
-  outputs =
-    inputs@{ ... }:
+  outputs = { self, nixpkgs, rbw-menu-flake, ... }:
     let
-      pkgs = import inputs.nixpkgs { inherit system; };
+      pkgs = import nixpkgs { inherit system; };
       system = "x86_64-linux";
     in
     {
@@ -21,7 +20,7 @@
       packages.${system} = rec {
         rbw-menu = pkgs.writeShellApplication {
           name = "rbw-menu";
-          text = inputs.rbw-menu.outPath + "/bin/rbw-menu";
+          text = rbw-menu-flake.outPath + "/bin/rbw-menu";
           runtimeInputs = [
             pkgs.rbw
             pkgs.jq
