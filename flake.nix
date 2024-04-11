@@ -52,19 +52,30 @@
 
             config = lib.mkIf config.programs.rbw-menu.enable {
               environment.systemPackages = [ rbw-menu ];
-              environment.variables.RBW_MENU_COMMAND = lib.mkForce "${config.programs.rbw-menu.gui.package}/bin/${pkgs.lib.getName config.programs.rbw-menu.gui.package} ${config.programs.rbw-menu.gui.args}";
+              environment.variables.RBW_MENU_COMMAND = lib.mkForce (
+                let
+                  gui = config.programs.rbw-menu.gui.package;
+                  args = config.programs.rbw-menu.gui.args;
+                in
+                "${gui}/bin/${rbw-menu.getName gui} ${args}"
+              );
             };
           };
       in
       {
         formatter = pkgs.nixfmt-rfc-style;
-        packages.rbw-menu = rbw-menu;
-        defaultPackage = rbw-menu;
+        packages = rec {
+          inherit rbw-menu;
+          default = rbw-menu;
+        };
         apps.rbw-menu = {
           type = "app";
           program = "${rbw-menu}/bin/rbw-menu";
         };
-		nixosModules.rbw-menu = module;
+        nixosModules = rec {
+          inherit module;
+          default = module;
+        };
       }
     );
 }
